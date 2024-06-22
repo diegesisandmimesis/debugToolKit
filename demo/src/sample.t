@@ -48,17 +48,16 @@ gameMain: GameMainDef
 startRoom: Room 'Void' "This is a featureless void.";
 +me: Person;
 
-/*
-DefineSystemAction(Foozle)
-	execSystemAction() {
-		demoDebugger.debugger('foo', nil, 'command line');
-	}
-;
-VerbRule(Foozle) 'foozle' : FoozleAction;
-*/
 DefineDtkDebuggerAction(Foozle, demoDebugger);
 VerbRule(Foozle) 'foozle' : FoozleAction;
 
 demoDebugger: DtkDebugger;
-+DtkCmdExit;
-+DtkCmdHelp;
++DtkCommand 'foo' 'print the word <q>foo</q>'
+	"This is a silly demonstration command that does nothing other
+	than output the word <q>foo</q>.  Well, and hopefully it serves
+	as a helpful example of how to declare a debugger command. "
+
+	cmd(arg) {
+		output('A hollow voice says <q>foo</q>. ');
+	}
+;

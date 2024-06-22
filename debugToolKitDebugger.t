@@ -18,6 +18,10 @@ class DtkDebugger: PreinitObject
 	transcript = nil		// saved "real" transcript
 	stream = nil			// saved "real" output stream
 
+	// Default commands to add to every debugger.  We always
+	// add the standard help and exit commands.
+	defaultCommands = static [ DtkCmdExit, DtkCmdHelp ]
+
 	// Lookup table for the debugger command objects
 	commands = perInstance(new LookupTable())
 
@@ -34,6 +38,26 @@ class DtkDebugger: PreinitObject
 	execute() {
 		forEachInstance(DtkCommand, function(o) {
 			self.addCommand(o);
+		});
+		addDefaultCommands();
+	}
+
+	addDefaultCommands() {
+		local obj;
+
+		if(defaultCommands == nil)
+			return;
+
+		if(!defaultCommands.ofKind(Collection))
+			defaultCommands = [ defaultCommands ];
+
+		defaultCommands.forEach(function(o) {
+			if(getCommand(o))
+				return;
+
+			obj = o.createInstance();
+			obj.location = self;
+			addCommand(obj);
 		});
 	}
 
