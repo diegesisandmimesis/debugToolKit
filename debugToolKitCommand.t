@@ -8,17 +8,6 @@
 
 #include "debugToolKit.h"
 
-// Data structure for handling debugger operators and args
-class DtkParseResult: object
-	cmd = nil
-	arg = nil
-
-	construct(v0, v1?) {
-		cmd = v0;
-		arg = v1;
-	}
-;
-
 // Class for individual debugger commands
 class DtkCommand: DtkObject
 	// command keyword.  that's the actual typed command, like "exit"

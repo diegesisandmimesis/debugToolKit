@@ -26,3 +26,6 @@ class DtkDebuggerAction: SystemAction
 
 	startDebugger(obj) { obj.debugger(nil, nil, 'command line'); }
 ;
+
+DefineTAction(DtkScope) objInScope(obj) { return(true); };
+VerbRule(DtkScope) 'dtkscope' singleDobj: DtkScopeAction;

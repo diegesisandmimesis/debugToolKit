@@ -7,3 +7,4 @@
 -lib ../debugToolKit
 -source src/sample.t
 -source reflect.t
+-source dynfunc.t

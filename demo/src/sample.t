@@ -47,6 +47,7 @@ gameMain: GameMainDef
 
 startRoom: Room 'Void' "This is a featureless void.";
 +me: Person;
++pebble: Thing '(small) (round) pebble' 'pebble' "A small, round pebble. ";
 
 DefineDtkDebuggerAction(Foozle, demoDebugger);
 VerbRule(Foozle) 'foozle' : FoozleAction;
@@ -58,6 +59,28 @@ demoDebugger: DtkDebugger;
 	as a helpful example of how to declare a debugger command. "
 
 	cmd(arg) {
+		if(arg != nil) {
+			output('Foo does not take an argument.');
+			return(true);
+		}
 		output('A hollow voice says <q>foo</q>. ');
+		return(true);
+	}
+;
++DtkCommand 'look' 'show an object\'s desc'
+	"Another useless debugger command. "
+
+	cmd(arg) {
+		if(arg == nil) {
+			output('No argument given.');
+			return(true);
+		}
+		if(!arg.ofKind(Thing)) {
+			output('Argument is not a Thing.');
+			return(true);
+		}
+		arg.desc();
+
+		return(true);
 	}
 ;

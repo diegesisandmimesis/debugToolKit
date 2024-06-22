@@ -4,8 +4,22 @@
 //
 #include <adv3.h>
 #include <en_us.h>
+#include <dynfunc.h>
 
 #include "debugToolKit.h"
+
+// Data structure for handling debugger operators and args
+class DtkParseResult: object
+	cmd = nil
+	arg = nil
+	obj = nil
+
+	construct(v0, v1?, v2?) {
+		cmd = v0;
+		arg = v1;
+		obj = v2;
+	}
+;
 
 // The debugger itself
 class DtkDebugger: PreinitObject
@@ -30,6 +44,7 @@ class DtkDebugger: PreinitObject
 	_helpRex = '^<space>*<question><space>*$'
 	_niladicRex = '^<space>*(<alpha>+)<space>*$'
 	_unaryRex = '^<space>*(<alpha>+)<space>+(<AlphaNum>+)<space>*$'
+	_objRex = '^<space>*(<alpha>+)<space>+@(<AlphaNum>+)<space>*$'
 
 	// Debugger lock.  Probably not needed
 	_debuggerLock = nil
@@ -231,6 +246,11 @@ class DtkDebugger: PreinitObject
 		if((r = parseDebuggerCommand(txt)) == nil)
 			return(true);
 
+		if(r.arg != nil) {
+			if(!parseDebuggerArg(r))
+				return(true);
+		}
+
 		return(execDebuggerCommand(r));
 	}
 
@@ -270,9 +290,42 @@ class DtkDebugger: PreinitObject
 				rexGroup(1)[3].toLower(),
 				rexGroup(2)[3].toLower()));
 
+		if(rexMatch(_objRex, txt) != nil)
+			return(new DtkParseResult(
+				rexGroup(1)[3].toLower(),
+				rexGroup(2)[3].toLower(), true));
+
 		// Punt.
 		return(handleUnknownCommand(txt));
 	}
+
+	// Do any special handling required by the argument.
+	parseDebuggerArg(op) {
+		local buf;
+
+		// Arg is just a literal, nothing to do.
+		if(op.obj != true)
+			return(true);
+
+		buf = new StringBuffer();
+		buf.append('function() { return(');
+		buf.append(op.arg);
+		buf.append('); }');
+		buf = toString(buf);
+
+		try {
+			setMethod(&_parseDebuggerArg, Compiler.compile(buf));
+			op.arg = _parseDebuggerArg();
+		}
+		catch(Exception e) {
+			e.displayException();
+			return(nil);
+		}
+
+		return(true);
+	}
+
+	_parseDebuggerArg = nil
 
 	handleUnknownCommand(txt) {
 		// Dunno what we got, complain
