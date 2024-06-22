@@ -62,7 +62,7 @@ class DtkCmdHelp: DtkCommand
 		return(commandHelp(arg));
 	}
 	genericHelp() {
-		_debugger.commands.forEachAssoc(function(k, v) {
+		getDebugger().commands.forEachAssoc(function(k, v) {
 			output('<b><<k>></b>\t<<v.help>>');
 		});
 
@@ -71,7 +71,7 @@ class DtkCmdHelp: DtkCommand
 	commandHelp(arg) {
 		local c;
 
-		if((c = _debugger.commands[arg]) == nil) {
+		if((c = getDebugger().commands[arg]) == nil) {
 			output('<q><b><arg</b></q>: Unknown debugger command');
 			return(true);
 		}

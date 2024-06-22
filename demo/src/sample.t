@@ -47,3 +47,18 @@ gameMain: GameMainDef
 
 startRoom: Room 'Void' "This is a featureless void.";
 +me: Person;
+
+/*
+DefineSystemAction(Foozle)
+	execSystemAction() {
+		demoDebugger.debugger('foo', nil, 'command line');
+	}
+;
+VerbRule(Foozle) 'foozle' : FoozleAction;
+*/
+DefineDtkDebuggerAction(Foozle, demoDebugger);
+VerbRule(Foozle) 'foozle' : FoozleAction;
+
+demoDebugger: DtkDebugger;
++DtkCmdExit;
++DtkCmdHelp;

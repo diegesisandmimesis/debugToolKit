@@ -83,6 +83,7 @@ class DtkDebugger: PreinitObject
 			return(nil);
 
 		commands[obj.id] = obj;
+		obj.setDebugger(self);
 
 		return(true);
 	}
