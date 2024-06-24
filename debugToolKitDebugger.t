@@ -45,6 +45,8 @@ class DtkDebugger: PreinitObject
 	_niladicRex = '^<space>*(<alpha>+)<space>*$'
 	_unaryRex = '^<space>*(<alpha>+)<space>+(<AlphaNum>+)<space>*$'
 	_objRex = '^<space>*(<alpha>+)<space>+@(<AlphaNum>+)<space>*$'
+	_argRex = '<space>*(<alpha>+)(<space>+@(?:<AlphaNum>+))+<space>*$'
+	_cmdRex = '^<space>*(<alpha>+)<space>*'
 
 	// Debugger lock.  Probably not needed
 	_debuggerLock = nil
@@ -246,10 +248,8 @@ class DtkDebugger: PreinitObject
 		if((r = parseDebuggerCommand(txt)) == nil)
 			return(true);
 
-		if(r.arg != nil) {
-			if(!parseDebuggerArg(r))
-				return(true);
-		}
+		if(!parseDebuggerArgs(r))
+			return(true);
 
 		return(execDebuggerCommand(r));
 	}
@@ -259,7 +259,7 @@ class DtkDebugger: PreinitObject
 	// We return either nil (do nothing) or a DtkParseResult instance
 	// (holding the command and maybe arg)
 	parseDebuggerCommand(txt) {
-		local c, i;
+		local args, c, cmd, i, idx, g;
 
 		// No command, nothing to do
 		if(txt == nil)
@@ -279,10 +279,38 @@ class DtkDebugger: PreinitObject
 			return(nil);
 		}
 
+		if((idx = txt.find(new RexPattern(_cmdRex))) == nil)
+			return(handleUnknownCommand(txt));
+
+		cmd = rexGroup(1)[3].toLower();
+		idx += cmd.length;
+
+		if(rexMatch(_argRex, txt, idx) == nil)
+			return(handleUnknownCommand(txt));
+
+		args = new Vector(4);
+		i = 1;
+		while((g = rexGroup(i)) != nil) {
+			args.append(g[3].toLower());
+			i += 1;
+		}
+		for(i = 1; i <= args.length; i++) {
+			args[i] = rexReplace('<space>+', args[i], '',
+				ReplaceAll);
+		}
+args.forEach(function(o) {
+	aioSay('\narg: <<toString(o)>>\n ');
+});
+
+		return(new DtkParseResult(cmd, args));
+/*
+
+
 		// See if we have a command with no arg
 		if(rexMatch(_niladicRex, txt) != nil)
 			return(new DtkParseResult(
 				rexGroup(1)[3].toLower()));
+
 
 		// See if we have a command and an arg
 		if(rexMatch(_unaryRex, txt) != nil)
@@ -297,10 +325,11 @@ class DtkDebugger: PreinitObject
 
 		// Punt.
 		return(handleUnknownCommand(txt));
+*/
 	}
 
 	// Do any special handling required by the argument.
-	parseDebuggerArg(op) {
+	parseDebuggerArgs(op) {
 		local buf;
 
 		// Arg is just a literal, nothing to do.
@@ -329,23 +358,33 @@ class DtkDebugger: PreinitObject
 
 	handleUnknownCommand(txt) {
 		// Dunno what we got, complain
-		"\nUnknown debugger command.\n ";
+		output('Unknown debugger command.');
+		return(nil);
+	}
+
+	resolveDebuggerCommand(op) {
+		local i, k;
+
+		k = commands.keysToList();
+		for(i = 1; i <= k.length; i++) {
+			if(k[i] == op.cmd)
+				return(getCommand(k[i]));
+		}
+
 		return(nil);
 	}
 
 	// Try to execute the command
 	// Arg is a DtkParseResult instance
 	execDebuggerCommand(op) {
-		local i, k;
+		local c;
 
-		k = commands.keysToList();
-		for(i = 1; i <= k.length; i++) {
-			if(k[i] == op.cmd)
-				return(commands[k[i]].cmd(op.arg));
+		if((c = resolveDebuggerCommand(op)) == nil) {
+			// Didn't match anything, complain
+			handleUnknownCommand();
 		}
 
-		// Didn't match anything, complain
-		"\nUnknown debugger command.\n ";
+		c.cmd(op.arg);
 
 		return(true);
 	}

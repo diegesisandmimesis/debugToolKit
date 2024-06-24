@@ -8,6 +8,6 @@
 	_debugger = debuggerObj
 	
 
-DtkCommand template 'id' 'help'? "longHelp"?;
+DtkCommand template 'id' +argCount? 'help'? "longHelp"?;
 
 #define DEBUG_TOOL_KIT_H

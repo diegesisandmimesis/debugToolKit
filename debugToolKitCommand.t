@@ -22,6 +22,9 @@ class DtkCommand: DtkObject
 	// Boolean flag.  If true, we're not listed by the help command.
 	hidden = nil
 
+	// Number of arguments
+	argsCount = 0
+
 	cmd(arg?) { return(true); }			// command method
 ;
 
