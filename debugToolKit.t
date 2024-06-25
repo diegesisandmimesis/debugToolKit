@@ -179,6 +179,34 @@
 //		>>>
 //
 //
+// EXPRESSION EVALUATOR
+//
+//	In addition to "normal" commands, the module supplies a TADS3
+//	expression evaluator that can be added to debuggers.
+//
+//	The class is DtkEval, and it can be added the same way you
+//	add commands:
+//
+//		// Declare the debugger.
+//		demoDebugger: DtkDebugger;
+//		// Add the expression evaluator.
+//		+DtkEval;
+//
+//	In the debugger, pass expressions to evaluator by just typing them
+//	on the command line.  For example, given an object "foo" with a
+//	property "bar":
+//
+//		>>> foo.bar = 123
+//		123
+//		>>>
+//
+//	In this case the expression is "foo.bar = 123", and the return
+//	value is the value assigned, in this case 123.
+//
+//	If added to a debugger, the expression evaluator will attempt to
+//	evaluate anything typed on the command line that doesn't match
+//	a defined debugger command.
+//
 //
 #include <adv3.h>
 #include <en_us.h>

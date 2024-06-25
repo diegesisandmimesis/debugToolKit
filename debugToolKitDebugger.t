@@ -262,7 +262,7 @@ class DtkDebugger: PreinitObject
 		}
 
 		// Try to resolve the command string into a command object
-		if((cmd = parseDebuggerCommand(data)) == nil)
+		if((cmd = parseDebuggerCommand(data, txt)) == nil)
 			return(true);
 
 		if(parseDebuggerArgs(data) == nil)
@@ -407,7 +407,7 @@ class DtkDebugger: PreinitObject
 
 	// Given a resolve results object, try to get the corresponding
 	// command object for its command.
-	parseDebuggerCommand(op) {
+	parseDebuggerCommand(op, txt) {
 		local c, err, i, k;
 
 		c = (op.args ? op.args.length : 0);
@@ -440,8 +440,20 @@ class DtkDebugger: PreinitObject
 		}
 
 		// Generic error.
-		output('Unknown command. ');
+		//output('Unknown command. ');
+		handleNilCommand(txt);
 		return(nil);
+	}
+
+	handleNilCommand(txt) {
+		local cmd;
+
+		if((cmd = getCommand(DtkEval)) == nil) {
+			output('Unknown command.');
+			return;
+		}
+
+		cmd.cmd(txt);
 	}
 
 	// Try to execute the command

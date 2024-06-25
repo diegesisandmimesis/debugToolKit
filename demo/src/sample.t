@@ -86,3 +86,11 @@ demoDebugger: DtkDebugger;
 		return(true);
 	}
 ;
+// Add the expression evaluator.
++DtkEval;
+
+// Simple object for the expression evaluator to play with.
+foo: object
+	bar = nil
+	log() { aioSay('\nfoo.bar = <<toString(bar)>>\n '); }
+;
