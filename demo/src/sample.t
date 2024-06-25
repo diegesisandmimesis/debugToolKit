@@ -58,28 +58,30 @@ demoDebugger: DtkDebugger;
 	than output the word <q>foo</q>.  Well, and hopefully it serves
 	as a helpful example of how to declare a debugger command. "
 
-	cmd(arg) {
-		if(arg != nil) {
-			output('Foo does not take an argument.');
-			return(true);
-		}
+	cmd() {
 		output('A hollow voice says <q>foo</q>. ');
 		return(true);
 	}
 ;
-+DtkCommand 'look' 'show an object\'s desc'
-	"Another useless debugger command. "
++DtkCommand 'bar' +1 'print the word <q>bar</q>'
+	"Like <b>foo</b>, but with <q>bar</q> and an argument. "
 
 	cmd(arg) {
-		if(arg == nil) {
-			output('No argument given.');
-			return(true);
-		}
-		if(!arg.ofKind(Thing)) {
+		output('A hollow voice says <q>bar</q> and also
+			<q><<arg>></q>. ');
+		return(true);
+	}
+;
+// Note the +1 in the command declaration.  This means the command takes
+// one argument (instead of the default zero arguments).
++DtkCommand 'look' +1 'show an object\'s desc'
+	"Use <b>LOOK @[object name]</b> to display an object's description. "
+	cmd(obj) {
+		if(!obj.ofKind(Thing)) {
 			output('Argument is not a Thing.');
 			return(true);
 		}
-		arg.desc();
+		obj.desc();
 
 		return(true);
 	}

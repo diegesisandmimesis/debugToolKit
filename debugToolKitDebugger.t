@@ -11,13 +11,11 @@
 // Data structure for handling debugger operators and args
 class DtkParseResult: object
 	cmd = nil
-	arg = nil
-	obj = nil
+	args = nil
 
-	construct(v0, v1?, v2?) {
+	construct(v0, v1?) {
 		cmd = v0;
-		arg = v1;
-		obj = v2;
+		args = v1;
 	}
 ;
 
@@ -34,10 +32,14 @@ class DtkDebugger: PreinitObject
 
 	// Default commands to add to every debugger.  We always
 	// add the standard help and exit commands.
-	defaultCommands = static [ DtkCmdExit, DtkCmdHelp ]
+	defaultCommands = static [ DtkCmdExit, DtkCmdHelp, DtkCmdHelpArg ]
 
 	// Lookup table for the debugger command objects
-	commands = perInstance(new LookupTable())
+	commands = perInstance(new Vector())
+
+	// Method we'll hang a compiled express on if we need to resolve
+	// keywords into objects
+	_compiledDebuggerArg = nil
 
 	// Rexen for command parsing
 	_skipRexen = static [ '^$', '^<space>*$' ]
@@ -45,8 +47,11 @@ class DtkDebugger: PreinitObject
 	_niladicRex = '^<space>*(<alpha>+)<space>*$'
 	_unaryRex = '^<space>*(<alpha>+)<space>+(<AlphaNum>+)<space>*$'
 	_objRex = '^<space>*(<alpha>+)<space>+@(<AlphaNum>+)<space>*$'
-	_argRex = '<space>*(<alpha>+)(<space>+@(?:<AlphaNum>+))+<space>*$'
-	_cmdRex = '^<space>*(<alpha>+)<space>*'
+	_argRex = '<space>*(<alpha>+)(<space>+(?:@*)(?:<AlphaNum>+))+<space>*$'
+	//_cmdRex = '^<space>*(<alpha>+)<space>*'
+	//_cmdRex = '(<alpha>+)'
+	_cmdSplitRex = '<space>+'
+	_cmdSplitRexPattern = nil
 
 	// Debugger lock.  Probably not needed
 	_debuggerLock = nil
@@ -123,26 +128,25 @@ class DtkDebugger: PreinitObject
 		if((obj == nil) || !obj.ofKind(DtkCommand))
 			return(nil);
 
-		commands[obj.id] = obj;
+		commands.appendUnique(obj);
 		obj.setDebugger(self);
 
 		return(true);
 	}
 
 	getCommand(cls) {
-		local i, k;
+		local k;
 
 		if(cls == nil)
 			return(nil);
 
 		if(cls.ofKind(String))
-			return(commands[cls]);
+			k = commands.subset({ x: x.id == cls });
+		else
+			k = commands.subset({ x: x.ofKind(cls) });
 
-		k = commands.keysToList();
-		for(i = 1; i <= k.length; i++) {
-			if(commands[k[i]].ofKind(cls))
-				return(commands[k[i]]);
-		}
+		if(k.length > 0)
+			return(k[1]);
 
 		return(nil);
 	}
@@ -213,7 +217,7 @@ class DtkDebugger: PreinitObject
 			// Keep accepting and processing commands until
 			// the command handler returns nil
 			cmd = inputManager.getInputLine(nil, nil);
-			if(handleDebuggerCommand(cmd) != true) {
+			if(handleDebuggerInput(cmd) != true) {
 				// Return to the game
 				return;
 			}
@@ -242,24 +246,36 @@ class DtkDebugger: PreinitObject
 	}
 
 	// Command execution cycle, such as it is
-	handleDebuggerCommand(txt) {
-		local r;
+	handleDebuggerInput(txt) {
+		local cmd, data;
 
-		if((r = parseDebuggerCommand(txt)) == nil)
+		// Parse the input string, returning a parse result object.
+		// A return of nil means an empty(-ish) command line, so
+		// we just immediately return (to go through the input
+		// loop again)
+		if((data = parseDebuggerInput(txt)) == nil)
 			return(true);
 
-		if(!parseDebuggerArgs(r))
+		if(data.cmd == nil) {
+			output('Unknown command.');
+			return(true);
+		}
+
+		// Try to resolve the command string into a command object
+		if((cmd = parseDebuggerCommand(data)) == nil)
 			return(true);
 
-		return(execDebuggerCommand(r));
+		if(parseDebuggerArgs(data) == nil)
+			return(true);
+
+		return(execDebuggerCommand(cmd, data));
 	}
 
-	// Attempt to parse the input string as a debugger command, possibly
-	// with an argument
+	// Attempt to parse the input string as a debugger command.
 	// We return either nil (do nothing) or a DtkParseResult instance
-	// (holding the command and maybe arg)
-	parseDebuggerCommand(txt) {
-		local args, c, cmd, i, idx, g;
+	// (holding the command and any arguments)
+	parseDebuggerInput(txt) {
+		local ar, i;
 
 		// No command, nothing to do
 		if(txt == nil)
@@ -271,122 +287,169 @@ class DtkDebugger: PreinitObject
 				return(nil);
 
 		// Special case:  see if the input is "?", and handle it
-		// as if the input was "help" if so
-		if(rexMatch(_helpRex, txt) != nil) {
-			if((c = getCommand(DtkCmdHelp)) == nil)
-				return(handleUnknownCommand(txt));
-			c.cmd();
-			return(nil);
-		}
+		// as if the input was "help"
+		if(rexMatch(_helpRex, txt) != nil)
+			return(new DtkParseResult('help'));
 
-		if((idx = txt.find(new RexPattern(_cmdRex))) == nil)
-			return(handleUnknownCommand(txt));
+		// Now we compile the regex we'll use to split the
+		// input string into word-ish bits.
+		if(_cmdSplitRexPattern == nil)
+			_cmdSplitRexPattern = new RexPattern(_cmdSplitRex);
 
-		cmd = rexGroup(1)[3].toLower();
-		idx += cmd.length;
+		// Split the command.
+		ar = txt.split(_cmdSplitRexPattern);
 
-		if(rexMatch(_argRex, txt, idx) == nil)
-			return(handleUnknownCommand(txt));
+		// If we didn't get ANY word-like things, bail.
+		if(ar.length < 1)
+			return(new DtkParseResult(nil));
 
-		args = new Vector(4);
-		i = 1;
-		while((g = rexGroup(i)) != nil) {
-			args.append(g[3].toLower());
-			i += 1;
-		}
-		for(i = 1; i <= args.length; i++) {
-			args[i] = rexReplace('<space>+', args[i], '',
-				ReplaceAll);
-		}
-args.forEach(function(o) {
-	aioSay('\narg: <<toString(o)>>\n ');
-});
+		// Convert all the bits into lower case (we don't do
+		// this to the input string itself because we might
+		// later try to evaluate it as a raw TADS3 expression).
+		ar = ar.mapAll({ x: x.toLower() });
 
-		return(new DtkParseResult(cmd, args));
-/*
+		// Handle the special case where we got exactly one
+		// word, which is a command without arguments.
+		if(ar.length == 1)
+			return(new DtkParseResult(ar[1]));
 
-
-		// See if we have a command with no arg
-		if(rexMatch(_niladicRex, txt) != nil)
-			return(new DtkParseResult(
-				rexGroup(1)[3].toLower()));
-
-
-		// See if we have a command and an arg
-		if(rexMatch(_unaryRex, txt) != nil)
-			return(new DtkParseResult(
-				rexGroup(1)[3].toLower(),
-				rexGroup(2)[3].toLower()));
-
-		if(rexMatch(_objRex, txt) != nil)
-			return(new DtkParseResult(
-				rexGroup(1)[3].toLower(),
-				rexGroup(2)[3].toLower(), true));
-
-		// Punt.
-		return(handleUnknownCommand(txt));
-*/
+		// Return the parse result.  First arg is the command,
+		// second is the arg list.
+		return(new DtkParseResult(ar[1], ar.splice(1, 1)));
 	}
 
 	// Do any special handling required by the argument.
+	// Returning true means "continue evaluation" and nil means
+	// "something bad happened, fail".
 	parseDebuggerArgs(op) {
-		local buf;
+		local i;
 
-		// Arg is just a literal, nothing to do.
-		if(op.obj != true)
+		// No args, nothing to do
+		if(op.args == nil)
 			return(true);
 
-		buf = new StringBuffer();
-		buf.append('function() { return(');
-		buf.append(op.arg);
-		buf.append('); }');
-		buf = toString(buf);
+		_parseDebuggerArgs(op);
 
-		try {
-			setMethod(&_parseDebuggerArg, Compiler.compile(buf));
-			op.arg = _parseDebuggerArg();
-		}
-		catch(Exception e) {
-			e.displayException();
-			return(nil);
+		for(i = 1; i <= op.args.length; i++) {
+			if(op.args[i] == nil) {
+				output('Unknown object, argument
+					<<toString(i)>>.');
+				return(nil);
+			}
 		}
 
 		return(true);
 	}
 
-	_parseDebuggerArg = nil
+	_parseDebuggerArgs(op) {
+		local i, r, v;
 
-	handleUnknownCommand(txt) {
-		// Dunno what we got, complain
-		output('Unknown debugger command.');
-		return(nil);
-	}
+		// New vector for the modified arg list we're about to
+		// create.
+		v = new Vector(op.args.length);
 
-	resolveDebuggerCommand(op) {
-		local i, k;
+		for(i = 1; i <= op.args.length; i++) {
+			// Resolve the arg
+			r = _resolveDebuggerArg(op.args[i]);
 
-		k = commands.keysToList();
-		for(i = 1; i <= k.length; i++) {
-			if(k[i] == op.cmd)
-				return(getCommand(k[i]));
+			// Add it to the results vector.
+			v.append(r);
 		}
 
+		// Replace the arg list.
+		op.args = v;
+	}
+
+	// Figure out what to do with a single debugger command argument
+	_resolveDebuggerArg(arg) {
+		// If the arg doesn't start with an @, treat it as a literal.
+		if(!arg.startsWith('@'))
+			return(arg);
+
+		// The arg starts with an @, so we try to evaluate
+		// everything after the @ as a (TADS3) object name
+		return(_compileDebuggerArg(arg.substr(2)));
+	}
+
+	// Here we build and compile an expression to get a reference to a
+	// named object.
+	_compileDebuggerArg(arg) {
+		local buf, r;
+
+		// Construct the source for a function that returns the
+		// value of an object named in the arg.
+		buf = new StringBuffer();
+		buf.append('function() { return(');
+		buf.append(arg);
+		buf.append('); }');
+		buf = toString(buf);
+
+		// Try compiling the expression we constructed above, setting
+		// the compiled expression as our _compiledDebuggerArg()
+		// method.  The we get the value returned by the method.
+		try {
+			setMethod(&_compiledDebuggerArg, Compiler.compile(buf));
+			r = _compiledDebuggerArg();
+		}
+		// If something went wrong (for example the arg gave the
+		// name of an object that doesn't exist) the compiler will
+		// throw an exception, which we catch here, displaying the
+		// exception message.
+		catch(Exception e) {
+			e.displayException();
+			r = nil;
+		}
+		// Return whatever we ended up with.
+		finally {
+			return(r);
+		}
+	}
+
+	// Given a resolve results object, try to get the corresponding
+	// command object for its command.
+	parseDebuggerCommand(op) {
+		local c, err, i, k;
+
+		c = (op.args ? op.args.length : 0);
+
+		// Okay, first we go through all of the commands (as
+		// string literals).
+		k = commands.subset({ x: x.id == op.cmd });
+		for(i = 1; i <= k.length; i++) {
+			// If the arg count matches, immediately
+			// return.
+			if(k[i].argCount == c) {
+				return(k[i]);
+			} else {
+				// The arg count DOESN'T match, so
+				// we make a note of the failure.
+				// We don't immediately error out
+				// so we can handle commands with
+				// variable argument counts (like
+				// the builtin "help" command).
+				err = k[i];
+			}
+		}
+
+		// If we got an error above and reached here afterward, that
+		// means we didn't find any version of the command that matched
+		// our input arg count.  So now we error out.
+		if(err != nil) {
+			output('Bad arg count for command <<op.cmd>>.');
+			return(nil);
+		}
+
+		// Generic error.
+		output('Unknown command. ');
 		return(nil);
 	}
 
 	// Try to execute the command
 	// Arg is a DtkParseResult instance
-	execDebuggerCommand(op) {
-		local c;
-
-		if((c = resolveDebuggerCommand(op)) == nil) {
-			// Didn't match anything, complain
-			handleUnknownCommand();
-		}
-
-		c.cmd(op.arg);
-
-		return(true);
+	execDebuggerCommand(cmd, op) {
+		if(op.args == nil)
+			return(cmd.cmd());
+		return(cmd.cmd(op.args...));
 	}
 
 	isNumber(v)

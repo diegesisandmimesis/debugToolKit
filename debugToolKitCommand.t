@@ -23,7 +23,7 @@ class DtkCommand: DtkObject
 	hidden = nil
 
 	// Number of arguments
-	argsCount = 0
+	argCount = 0
 
 	cmd(arg?) { return(true); }			// command method
 ;
@@ -47,24 +47,28 @@ class DtkCmdHelp: DtkCommand
 	longHelp = "The <q>help</q> command displays a short help message,
 		like this one. "
 
-	cmd(arg?) {
-		if(arg == nil)
-			return(genericHelp());
-
-		return(commandHelp(arg));
-	}
-	genericHelp() {
-		getDebugger().commands.forEachAssoc(function(k, v) {
-			output('<b><<k>></b>\t<<v.help>>');
+	cmd() {
+		getDebugger().commands.forEach(function(o) {
+			if(o.hidden == true)
+				return;
+			output('<b><<o.id>></b>\t<<o.help>>');
 		});
 
 		return(true);
 	}
-	commandHelp(arg) {
+;
+
+class DtkCmdHelpArg: DtkCommand
+	id = 'help'
+	argCount = 1
+	hidden = true
+
+	cmd(arg) {
 		local c;
 
-		if((c = getDebugger().commands[arg]) == nil) {
-			output('<q><b><arg</b></q>: Unknown debugger command');
+		if((c = getDebugger().getCommand(arg)) == nil) {
+			output('<q><b><<toString(arg)>></b></q>:
+				Unknown debugger command');
 			return(true);
 		}
 
