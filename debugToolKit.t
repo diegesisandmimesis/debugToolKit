@@ -192,20 +192,21 @@
 //		// Add the expression evaluator.
 //		+DtkEval;
 //
-//	In the debugger, pass expressions to evaluator by just typing them
+//	In the debugger, use the "eval" command to enter expression
+//	evaluator mode pass.  The prompt will change to "eval>>>" and
+//	you can then pass expressions to evaluator by just typing them
 //	on the command line.  For example, given an object "foo" with a
-//	property "bar":
+//	property "bar" that is initially nil:
 //
-//		>>> foo.bar = 123
-//		123
-//		>>>
-//
-//	In this case the expression is "foo.bar = 123", and the return
-//	value is the value assigned, in this case 123.
-//
-//	If added to a debugger, the expression evaluator will attempt to
-//	evaluate anything typed on the command line that doesn't match
-//	a defined debugger command.
+//		>>>eval				// enter evaluator mode
+//		eval>>> foo.bar			// display foo.bar
+//		nil				// foo.bar is now nil
+//		eval>>> foo.bar = 123		// set foo.bar = 123
+//		123				// return value of expression
+//		eval>>> foo.bar			// display foo.bar again
+//		123				// value is now 123
+//		eval>>> exit			// exit evaluator mode
+//		>>>				// back at debug prompt
 //
 //
 #include <adv3.h>

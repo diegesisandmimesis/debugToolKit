@@ -446,6 +446,11 @@ class DtkDebugger: PreinitObject
 	}
 
 	handleNilCommand(txt) {
+		output('Unknown command.');
+	}
+
+/*
+	handleNilCommand(txt) {
 		local cmd;
 
 		if((cmd = getCommand(DtkEval)) == nil) {
@@ -455,6 +460,7 @@ class DtkDebugger: PreinitObject
 
 		cmd.cmd(txt);
 	}
+*/
 
 	// Try to execute the command
 	// Arg is a DtkParseResult instance
