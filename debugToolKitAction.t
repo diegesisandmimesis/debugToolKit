@@ -7,6 +7,8 @@
 
 #include "debugToolKit.h"
 
+#ifdef DTK
+
 modify playerActionMessages
 	dtkNoDebugger = 'No debugger defined. '
 ;
@@ -29,3 +31,5 @@ class DtkDebuggerAction: SystemAction
 
 DefineTAction(DtkScope) objInScope(obj) { return(true); };
 VerbRule(DtkScope) 'dtkscope' singleDobj: DtkScopeAction;
+
+#endif // DTK

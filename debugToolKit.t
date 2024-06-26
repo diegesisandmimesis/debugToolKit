@@ -8,6 +8,10 @@
 //	A debugger in this context means a lightweight modal interface
 //	that's only available in debugging builds.
 //
+//	Compile with -D DTK to enable the module's features and without
+//	it to disable them.  Code dependent on classes and macros provided
+//	by the module should degrade gracefully when compiled without -D DTK.
+//
 //
 // SIMPLE USAGE
 //
@@ -185,6 +189,8 @@ debugToolKitModuleID: ModuleID {
         listingOrder = 99
 }
 
+#ifdef DTK
+
 class DtkOutputStream: OutputStream
 	writeFromStream(txt) { aioSay(txt); }
 ;
@@ -205,3 +211,5 @@ class DtkObject: object
 
 	output(msg, svc?, ind?) { getDebugger().output(msg, svc, ind); }
 ;
+
+#endif // DTK

@@ -8,6 +8,8 @@
 
 #include "debugToolKit.h"
 
+#ifdef DTK
+
 // Data structure for handling debugger operators and args
 class DtkParseResult: object
 	cmd = nil
@@ -454,3 +456,5 @@ class DtkDebugger: PreinitObject
 	isNumber(v)
 		{ return(rexMatch('^<space>*(<Digit>+)<space>*$', v) != nil); }
 ;
+
+#endif // DTK

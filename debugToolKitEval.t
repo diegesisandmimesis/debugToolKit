@@ -10,6 +10,8 @@
 
 #include "debugToolKit.h"
 
+#ifdef DTK
+
 class DtkEval: DtkCommand
 	id = 'eval'
 	help = 'switch to expression evaluator mode'
@@ -77,3 +79,5 @@ class DtkEvalCmd: DtkCommand
 		output(toString(r));
 	}
 ;
+
+#endif // DTK

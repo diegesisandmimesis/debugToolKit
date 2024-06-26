@@ -8,6 +8,8 @@
 
 #include "debugToolKit.h"
 
+#ifdef DTK
+
 // Class for individual debugger commands
 class DtkCommand: DtkObject
 	// command keyword.  that's the actual typed command, like "exit"
@@ -74,3 +76,5 @@ class DtkCmdHelpArg: DtkCommand
 		c.longHelp();
 	}
 ;
+
+#endif // DTK
