@@ -44,12 +44,6 @@ class DtkDebugger: PreinitObject
 	// Rexen for command parsing
 	_skipRexen = static [ '^$', '^<space>*$' ]
 	_helpRex = '^<space>*<question><space>*$'
-	_niladicRex = '^<space>*(<alpha>+)<space>*$'
-	_unaryRex = '^<space>*(<alpha>+)<space>+(<AlphaNum>+)<space>*$'
-	_objRex = '^<space>*(<alpha>+)<space>+@(<AlphaNum>+)<space>*$'
-	_argRex = '<space>*(<alpha>+)(<space>+(?:@*)(?:<AlphaNum>+))+<space>*$'
-	//_cmdRex = '^<space>*(<alpha>+)<space>*'
-	//_cmdRex = '(<alpha>+)'
 	_cmdSplitRex = '<space>+'
 	_cmdSplitRexPattern = nil
 
@@ -217,7 +211,7 @@ class DtkDebugger: PreinitObject
 			// Keep accepting and processing commands until
 			// the command handler returns nil
 			cmd = inputManager.getInputLine(nil, nil);
-			if(handleDebuggerInput(cmd) != true) {
+			if(handleDebuggerInput(cmd) == true) {
 				// Return to the game
 				return;
 			}
@@ -254,19 +248,19 @@ class DtkDebugger: PreinitObject
 		// we just immediately return (to go through the input
 		// loop again)
 		if((data = parseDebuggerInput(txt)) == nil)
-			return(true);
+			return(nil);
 
 		if(data.cmd == nil) {
 			output('Unknown command.');
-			return(true);
+			return(nil);
 		}
 
 		// Try to resolve the command string into a command object
 		if((cmd = parseDebuggerCommand(data, txt)) == nil)
-			return(true);
+			return(nil);
 
 		if(parseDebuggerArgs(data) == nil)
-			return(true);
+			return(nil);
 
 		return(execDebuggerCommand(cmd, data));
 	}
@@ -448,19 +442,6 @@ class DtkDebugger: PreinitObject
 	handleNilCommand(txt) {
 		output('Unknown command.');
 	}
-
-/*
-	handleNilCommand(txt) {
-		local cmd;
-
-		if((cmd = getCommand(DtkEval)) == nil) {
-			output('Unknown command.');
-			return;
-		}
-
-		cmd.cmd(txt);
-	}
-*/
 
 	// Try to execute the command
 	// Arg is a DtkParseResult instance

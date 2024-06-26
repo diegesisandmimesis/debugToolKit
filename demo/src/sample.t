@@ -60,7 +60,6 @@ demoDebugger: DtkDebugger;
 
 	cmd() {
 		output('A hollow voice says <q>foo</q>. ');
-		return(true);
 	}
 ;
 +DtkCommand 'bar' +1 'print the word <q>bar</q>'
@@ -69,7 +68,6 @@ demoDebugger: DtkDebugger;
 	cmd(arg) {
 		output('A hollow voice says <q>bar</q> and also
 			<q><<arg>></q>. ');
-		return(true);
 	}
 ;
 // Note the +1 in the command declaration.  This means the command takes
@@ -79,11 +77,9 @@ demoDebugger: DtkDebugger;
 	cmd(obj) {
 		if(!obj.ofKind(Thing)) {
 			output('Argument is not a Thing.');
-			return(true);
+			return;
 		}
 		obj.desc();
-
-		return(true);
 	}
 ;
 // Add the expression evaluator.

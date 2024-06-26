@@ -25,7 +25,8 @@ class DtkCommand: DtkObject
 	// Number of arguments
 	argCount = 0
 
-	cmd(arg?) { return(true); }			// command method
+	// Stub command method.
+	cmd() { return(nil); }
 ;
 
 class DtkCmdExit: DtkCommand
@@ -36,7 +37,7 @@ class DtkCmdExit: DtkCommand
 
 	cmd(arg?) {
 		output('Exiting debugger.');
-		return(nil);
+		return(true);
 	}
 ;
 
@@ -53,8 +54,6 @@ class DtkCmdHelp: DtkCommand
 				return;
 			output('<b><<o.id>></b>\t<<o.help>>');
 		});
-
-		return(true);
 	}
 ;
 
@@ -69,11 +68,9 @@ class DtkCmdHelpArg: DtkCommand
 		if((c = getDebugger().getCommand(arg)) == nil) {
 			output('<q><b><<toString(arg)>></b></q>:
 				Unknown debugger command');
-			return(true);
+			return;
 		}
 
 		c.longHelp();
-
-		return(true);
 	}
 ;

@@ -25,15 +25,10 @@ class DtkEval: DtkCommand
 			_evalDebugger.addDefaultCommands();
 		}
 		_evalDebugger.debugger(nil, nil, 'command line');
-		return(true);
 	}
 ;
 
-class DtkCmdEvalExit: DtkCmdExit
-	cmd() {
-		return(nil);
-	}
-;
+class DtkCmdEvalExit: DtkCmdExit cmd() { return(true); };
 
 class DtkEvalDebugger: DtkDebugger
 	defaultCommands = static [
