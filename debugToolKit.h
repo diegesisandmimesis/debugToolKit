@@ -2,7 +2,8 @@
 // debugToolKit.h
 //
 
-#define DefineDtkDebuggerAction(name, debuggerObj...) \
+#define DefineDtkAction(name, kw, debuggerObj...) \
+	VerbRule(name) kw: name##Action; \
 	class name##Action: DtkDebuggerAction \
 	baseActionClass = name##Action \
 	_debugger = debuggerObj

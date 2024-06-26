@@ -89,7 +89,7 @@
 //				will not list this command.
 //				Default is nil
 //
-//		cmd()		The method called to execute the command.
+//		cmd(args...)	The method called to execute the command.
 //				It will be called with whatever args (if any)
 //				are given in the debugger command line.
 //				IMPORTANT:  This method needs to return
@@ -99,6 +99,77 @@
 //					A return value of true will cause
 //					the debugger to exit.
 //
+//		output(txt, n?)	Convenience method to output messages via
+//				the debugger.
+//				The first argument is the text to output.
+//				The optional second argument is the indentation
+//				level to use (default is zero, or no
+//				indentation).
+//
+//
+//	The module provides a template for declaring debugger commands
+//	(question marks indicate an optional property):
+//
+//		DtkCommand 'id' +argCount? 'help'? "longHelp"?;
+//
+//	Commands are added to debuggers via the standard TADS3 lexical
+//	ownership syntax.  That's the +[declaration] syntax:
+//
+//		// Declare a debugger.
+//		demoDebugger: DtkDebugger;
+//		// Add a simple command.
+//		+DtkCommand 'foo' 'print the word <q>foo</q>'
+//			"This command prints the word <q>foo</q>. "
+//			cmd() {
+//				output('<q>Foo</q>.');
+//			}
+//		;
+//
+//
+// DECLARING DEBUGGER ACTIONS
+//
+//	In addition to programmatically calling the debugger() method
+//	from existing code you can declare a debugging action using the
+//	DefineDtkAction macro.  Example:
+//
+//		DefineDtkAction(Foozle, 'foozle', demoDebugger);
+//
+//	This declares a new action, FoozleAction.  It is invoked via
+//	>FOOZLE on the normal TADS3 command line.  When invoked, >FOOZLE
+//	will start the debugger demoDebugger.
+//
+//
+// EXPRESSION EVALUATOR
+//
+//	In addition to normal commands the module supplies a simple TADS3
+//	expression evaluator that can be added to debuggers.
+//
+//	The class is DtkEval, and it can be added the same way other
+//	commands are added:
+//
+//		// Declare a debugger.
+//		demoDebugger: DtkDebugger;
+//		// Add the expression evaluator.
+//		+DtkEval;
+//
+//	In the debugger, use the "eval" command to enter expression
+//	evaluator mode.
+//
+//	In the expression evaluator the prompt will change to "eval>>>"
+//	and input will be parsed as TADS3 source code.
+//
+//	For example, if the game defines an object foo with a property
+//	bar that is initially nil:
+//
+//		>>>eval				// enter evaluator mode
+//		eval>>> foo.bar			// display current value
+//		nil				// foo.bar is nil
+//		eval>>> foo.bar = 123		// set foo.bar to be 123
+//		123				// return value from assignment
+//		eval>>> foo.bar			// display foo.bar again
+//		123				// value is now 123
+//		eval>>> exit			// exit evaluator mode
+//		>>>				// back at debug prompt
 //
 //
 #include <adv3.h>

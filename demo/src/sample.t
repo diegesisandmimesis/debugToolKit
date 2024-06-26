@@ -49,8 +49,7 @@ startRoom: Room 'Void' "This is a featureless void.";
 +me: Person;
 +pebble: Thing '(small) (round) pebble' 'pebble' "A small, round pebble. ";
 
-DefineDtkDebuggerAction(Foozle, demoDebugger);
-VerbRule(Foozle) 'foozle' : FoozleAction;
+DefineDtkAction(Foozle, 'foozle', demoDebugger);
 
 demoDebugger: DtkDebugger;
 +DtkCommand 'foo' 'print the word <q>foo</q>'

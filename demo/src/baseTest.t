@@ -30,8 +30,7 @@ startRoom: Room 'Void' "This is a featureless void.";
 
 foo: object bar = nil;
 
-DefineDtkDebuggerAction(Foozle, demoDebugger);
-VerbRule(Foozle) 'foozle' : FoozleAction;
+DefineDtkAction(Foozle, 'foozle', demoDebugger);
 
 demoDebugger: DtkDebugger;
 +DtkEval;
