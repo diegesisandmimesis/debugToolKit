@@ -23,6 +23,10 @@ class DtkParseResult: object
 
 // The debugger itself
 class DtkDebugger: PreinitObject
+	sortCommands = nil		// alphabetically sort command list?
+					// default is nil, cmds listed in order
+					// declared
+
 	prompt = '&gt;&gt;&gt; '	// debugger prompt
 	prefix = ''			// output prefix
 	spacer = '====='		// output spacer.  nil for none
@@ -145,6 +149,13 @@ class DtkDebugger: PreinitObject
 			return(k[1]);
 
 		return(nil);
+	}
+
+	getCommandList() {
+		if(!sortCommands)
+			return(commands);
+		return(commands.sort(nil,
+			{ a, b: toString(a.id).compareTo(toString(b.id)) }));
 	}
 
 	// Handle the debugger lock
@@ -452,9 +463,6 @@ class DtkDebugger: PreinitObject
 			return(cmd.cmd());
 		return(cmd.cmd(op.args...));
 	}
-
-	isNumber(v)
-		{ return(rexMatch('^<space>*(<Digit>+)<space>*$', v) != nil); }
 ;
 
 #endif // DTK

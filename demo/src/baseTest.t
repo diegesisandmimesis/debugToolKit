@@ -30,11 +30,6 @@ startRoom: Room 'Void' "This is a featureless void.";
 
 foo: object bar = nil;
 
-DefineDtkAction(Foozle, 'foozle', demoDebugger)
-	startDebugger(obj) {
-		obj.debugger('wibble-wobble', nil, 'the foozle command');
-	}
-;
-
+DefineDtkAction(Foozle, 'foozle', demoDebugger);
 demoDebugger: DtkDebugger;
 +DtkEval;

@@ -18,4 +18,8 @@
 
 DtkCommand template 'id' +argCount? 'help'? "longHelp"?;
 
+#ifndef isNumber
+#define isNumber(x) (rexMatch('^<space>*(<Digit>+)<space>*$', x) != nil)
+#endif // isNumber
+
 #define DEBUG_TOOL_KIT_H

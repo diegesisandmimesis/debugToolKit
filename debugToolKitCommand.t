@@ -51,7 +51,7 @@ class DtkCmdHelp: DtkCommand
 		like this one. "
 
 	cmd() {
-		getDebugger().commands.forEach(function(o) {
+		getDebugger().getCommandList().forEach(function(o) {
 			if(o.hidden == true)
 				return;
 			output('<b><<o.id>></b>\t<<o.help>>');
