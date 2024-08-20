@@ -21,6 +21,9 @@ class DtkCommand: DtkObject
 	// long help message.  displayed for "help [command]"
 	longHelp = "[this space intentionally left blank]"
 
+	// Usage message for command
+	usage = nil
+
 	// Boolean flag.  If true, we're not listed by the help command.
 	hidden = nil
 

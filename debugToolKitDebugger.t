@@ -442,7 +442,10 @@ class DtkDebugger: PreinitObject
 		// means we didn't find any version of the command that matched
 		// our input arg count.  So now we error out.
 		if(err != nil) {
-			output('Bad arg count for command <<op.cmd>>.');
+			if(err.usage != nil)
+				output('Usage: ' + err.usage);
+			else
+				output('Bad arg count for command <<op.cmd>>.');
 			return(nil);
 		}
 

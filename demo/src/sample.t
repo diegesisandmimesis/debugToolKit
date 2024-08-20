@@ -73,6 +73,7 @@ demoDebugger: DtkDebugger;
 // one argument (instead of the default zero arguments).
 +DtkCommand 'look' +1 'show an object\'s desc'
 	"Use <b>LOOK @[object name]</b> to display an object's description. "
+	'LOOK @[object name]'
 	cmd(obj) {
 		if(!obj.ofKind(Thing)) {
 			output('Argument is not a Thing.');
