@@ -16,7 +16,8 @@
 
 #endif // DTK
 
-DtkCommand template 'id' +argCount? 'help'? "longHelp"? 'usage'?;
+DtkCommand template 'id' +argCount? 'help'? "longHelp"?;
+DtkCommand template 'id' +argCount? 'usage'? 'help'? "longHelp"?;
 
 #ifndef isNumber
 #define isNumber(x) (rexMatch('^<space>*(<Digit>+)<space>*$', x) != nil)
