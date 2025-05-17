@@ -59,7 +59,8 @@ class DtkDebugger: PreinitObject
 	// Preinit method.  Sets up command objects
 	execute() {
 		forEachInstance(DtkCommand, function(o) {
-			self.addCommand(o);
+			if(o.location == self)
+				self.addCommand(o);
 		});
 		addDefaultCommands();
 	}
