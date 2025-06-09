@@ -6,3 +6,4 @@ source: src/dtk/debugToolKitAction.t
 source: src/dtk/debugToolKitDebugger.t
 source: src/dtk/debugToolKitFallthrough.t
 source: src/extras/refcountDebugger/refcountDebugger.t
+source: src/extras/refcountDebugger/refcountEnumerator.t

@@ -21,49 +21,76 @@
 
 #include "debugToolKit.h"
 
+// Declare a generic debug toolkit debugger instance and add the refcount
+// debugger to it.
+// This gives you the normal debugger (otherwise empty in this case) and
+// configures it to have a debugger command (refcount, displayed in the
+// help menu) that switches to the refcount debugger.
+demoDebugger: DtkDebugger;
++DtkRefcount;
+
+// Declare a standalone refcount debugger.  This can be invoked directly,
+// as opposed to the one above which gets set up as part of the "main"
+// debugger.
+refcountDebugger: RefcountDebugger;
+
+// Convenience definition for the class we'll be referencing a lot in this
+// demo.
 #define pgClass gameMain.doorClass
 
-demoDebugger: RefcountDebugger;
-
+// The class definition.  It's just a door class, and it's only getting
+// a subclass to make it easier to separate in versions of this demo
+// that involve other door classes.
 class DemoDoor: Door
 	//finalize() { aioSay('\nfinalize()\n '); }
 ;
 
 versionInfo: GameID;
 gameMain: GameMainDef
+	// Just putting the class somewhere the pgClass macro can get it.
 	doorClass = DemoDoor
+
 	initialPlayerChar = me
+
 	newGame() {
+		// Before we even start we swap the doors, using the
+		// logic implemented in the Foozle action class (defined
+		// below).
+		// This can be used to test the fact that dangling references
+		// to door instances aren't created until the first turn;
+		// you can invoke the command below as many times as you
+		// want and you'll never end up with more than two door
+		// instances (if you run t3RunGC() before checking).
 		FoozleAction.swapDoors();
+
 		inherited();
-	}
-
-	makeDoors() {
-		local i;
-
-		for(i = 0; i < 100; i++)
-			FoozleAction.swapDoors();
-
-		t3RunGC();
-		i = 0;
-		forEachInstance(DemoDoor, { x: i += 1 });
-		"\ninstances = <<toString(i)>>\n ";
 	}
 ;
 
+// Tiny little gameworld.
+// The start and north rooms are the ones that get connected by dynamically
+// created doors.  The south room is there to give someplace to travel
+// without interacting with the doors, and the void is there so other
+// versions of this demo can put the player outside of contiguous sense
+// containment with the doors.
 void: Room 'Void' "This is the void. ";
+
 startRoom: Room 'Starting Room' "This is the starting room. "
 	north = northRoom
 	south = southRoom
 ;
 +me: Person;
+
 northRoom: Room 'North Room' "This is the north room. "
 	south = startRoom
 ;
+
 southRoom: Room 'South Room' "This is the south room. "
 	north = startRoom
 ;
 
+// Update the base room class to add logic to remove a door.  This
+// is what we'd hope would free the door(s) for garbage collection.
 modify Room
 	clearDoor() {
 		contents.forEach({ x: _clearDoor(x) });
@@ -77,10 +104,11 @@ modify Room
 		d.otherSide = nil;
 		d.masterObject = nil;
 		d.moveInto(nil);
-		d.moved = nil;
 	}
 ;
 
+// Action that gets rid of the existing doors connecting startRoom and
+// northRoom and creates a new pair.
 DefineSystemAction(Foozle)
 	execSystemAction() {
 		swapDoors();
@@ -91,8 +119,11 @@ DefineSystemAction(Foozle)
 		createDoors();
 	}
 
+	// Clear the existing doors.
 	clearDoors() {
 		forEachInstance(Room, { x: x.clearDoor() });
+
+		// Clear all libGlobal caches.
 		libGlobal.connectionCache = nil;
 		libGlobal.canTouchCache = nil;
 		libGlobal.actorVisualAmbientCache = nil;
@@ -100,6 +131,7 @@ DefineSystemAction(Foozle)
 		libGlobal.invalSenseCache();
 	}
 
+	// Create and connect new doors.
 	createDoors() {
 		local d0, d1;
 
@@ -117,6 +149,18 @@ DefineSystemAction(Foozle)
 VerbRule(Foozle) 'foozle' : FoozleAction
 	verbPhrase = 'foozle/foozling';
 
+// Command to directly invoke the refcount debugger.
+DefineSystemAction(Refcount)
+	execSystemAction() {
+		refcountDebugger.debugger(nil, nil, 'command line');
+	}
+;
+VerbRule(Refcount) 'refcount' : RefcountAction
+	verbPhrase = 'refcount/refcounting';
+
+// Command to invoke the "general" debugger (in this case it only
+// contains the refcount debugger, but we're testing the modal
+// version of the code).
 DefineSystemAction(Dtk)
 	execSystemAction() {
 		demoDebugger.debugger(nil, nil, 'command line');
@@ -125,7 +169,8 @@ DefineSystemAction(Dtk)
 VerbRule(Dtk) 'dtk' : DtkAction
 	verbPhrase = 'dtk/dtking';
 
-
+// Command that does what the refcount debugger does, only
+// directly in a command instead of in a debugger interface.
 DefineSystemAction(Foo)
 	execSystemAction() {
 		local r;
