@@ -37,13 +37,21 @@ class DtkCommand: DtkObject
 class DtkCmdExit: DtkCommand
 	id = 'exit'
 	help = 'exit the debugger'
-	longHelp = "Use <q>exit</q> to exit the debugger and returh to the
+	longHelp = "Use <q>exit</q> to exit the debugger and return to the
 		game. "
 
 	cmd(arg?) {
 		output('Exiting debugger.');
 		return(true);
 	}
+;
+
+class DtkCmdBack: DtkCommand
+	id = 'back'
+	help = 'exit this mode'
+	longHelp = "Use <q>back</q> to exit this mode and return to the
+		main debugger. "
+	cmd() { return(true); }
 ;
 
 class DtkCmdHelp: DtkCommand

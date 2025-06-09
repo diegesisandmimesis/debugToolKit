@@ -14,10 +14,12 @@
 class DtkParseResult: object
 	cmd = nil
 	args = nil
+	raw = nil
 
-	construct(v0, v1?) {
+	construct(v0, v1?, v2?) {
 		cmd = v0;
 		args = v1;
+		raw = v2;
 	}
 ;
 
@@ -283,7 +285,7 @@ class DtkDebugger: PreinitObject
 	// We return either nil (do nothing) or a DtkParseResult instance
 	// (holding the command and any arguments)
 	parseDebuggerInput(txt) {
-		local ar, i;
+		local ar, i, raw;
 
 		// No command, nothing to do
 		if(txt == nil)
@@ -311,6 +313,8 @@ class DtkDebugger: PreinitObject
 		if(ar.length < 1)
 			return(new DtkParseResult(nil));
 
+		raw = new Vector(ar).splice(1, 1).toList();
+
 		// Convert all the bits into lower case (we don't do
 		// this to the input string itself because we might
 		// later try to evaluate it as a raw TADS3 expression).
@@ -323,7 +327,7 @@ class DtkDebugger: PreinitObject
 
 		// Return the parse result.  First arg is the command,
 		// second is the arg list.
-		return(new DtkParseResult(ar[1], ar.splice(1, 1)));
+		return(new DtkParseResult(ar[1], ar.splice(1, 1), raw));
 	}
 
 	// Do any special handling required by the argument.
@@ -358,7 +362,7 @@ class DtkDebugger: PreinitObject
 
 		for(i = 1; i <= op.args.length; i++) {
 			// Resolve the arg
-			r = _resolveDebuggerArg(op.args[i]);
+			r = _resolveDebuggerArg(op.args[i], op.raw[i]);
 
 			// Add it to the results vector.
 			v.append(r);
@@ -369,14 +373,14 @@ class DtkDebugger: PreinitObject
 	}
 
 	// Figure out what to do with a single debugger command argument
-	_resolveDebuggerArg(arg) {
+	_resolveDebuggerArg(arg, raw) {
 		// If the arg doesn't start with an @, treat it as a literal.
 		if(!arg.startsWith('@'))
 			return(arg);
 
 		// The arg starts with an @, so we try to evaluate
 		// everything after the @ as a (TADS3) object name
-		return(_compileDebuggerArg(arg.substr(2)));
+		return(_compileDebuggerArg(raw.substr(2)));
 	}
 
 	// Here we build and compile an expression to get a reference to a
@@ -467,6 +471,19 @@ class DtkDebugger: PreinitObject
 			return(cmd.cmd());
 		return(cmd.cmd(op.args...));
 	}
+;
+
+// Modal debugger subclass.  For debuggers inside the debugger--a debug
+// command that switches to a different debugger.
+DtkModalDebugger: DtkDebugger
+	// Change the prompt to identify the mode
+	prompt = '<<name>>&gt;&gt;&gt; '
+
+	// We start out with a "back" command instead of an "exit" command.
+	defaultCommands = static [ DtkCmdBack, DtkCmdHelp, DtkCmdHelpArg ]
+
+	// Suppress the banner when entering a modal debugger.
+	debuggerBanner(lbl) {}
 ;
 
 #endif // DTK
