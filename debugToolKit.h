@@ -23,6 +23,8 @@ DtkCommand template 'id' +argCount? 'usage'? 'help'? "longHelp"?;
 #define isNumber(x) (rexMatch('^<space>*(<Digit>+)<space>*$', x) != nil)
 #endif // isNumber
 
+// Datatype testing macros.  Defined so we don't have to require
+// the dataTypes module.
 #ifndef _isType
 #define _isType(v, cls) ((v != nil) && (dataType(v) == TypeObject) && v.ofKind(cls))
 #endif
@@ -30,7 +32,7 @@ DtkCommand template 'id' +argCount? 'usage'? 'help'? "longHelp"?;
 #define _isIntrinsicType(v, cls) ((v != nil) && v.ofKind(cls))
 #endif
 #ifndef _isLookupTable
-#define _isLookupTable(v) (isType(v, LookupTable))
+#define _isLookupTable(v) (_isType(v, LookupTable))
 #endif
 #ifndef _isObject
 #define _isObject(v) ((v != nil) && (dataType(v) == TypeObject))

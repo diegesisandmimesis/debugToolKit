@@ -2,12 +2,17 @@
 //
 // refcountDebugger.t
 //
+//	Debugger for backtracking object references.
+//
+//	Useful if you have dynamically-created objects that aren't
+//	getting garbage collected and you want to identify why.
+//
+//
 #include <adv3.h>
 #include <en_us.h>
 #include <dynfunc.h>
 
 #include "debugToolKit.h"
-#include "dataTypes.h"
 
 #ifdef DTK
 
@@ -41,7 +46,6 @@ __refcountDebuggerEnumerator: object
 
 		r = new Vector();
 		forEachInstance(cls, function(x) {
-			//r.append([ x, search({ y: x.__equals(y) }) ]);
 			r.append(new _DtkSearchResult(x,
 				search({ y: x.__equals(y) })));
 		});
@@ -50,14 +54,13 @@ __refcountDebuggerEnumerator: object
 	search(fn) {
 		local obj, r, v;
 
-		if(!isFunction(fn))
+		if(!_isFunction(fn))
 			return([]);
 		r = new Vector();
 
 		obj = firstObj();
 		while(obj) {
 			if((v = _searchObject(obj, fn)) != nil)
-				//r.append([ obj, v ]);
 				r.append(new _DtkObjMatch(obj, v));
 			obj = nextObj(obj);
 		}
@@ -66,7 +69,6 @@ __refcountDebuggerEnumerator: object
 			obj = firstObj(x, ObjClasses);
 			while(obj) {
 				if((v = _searchObject(obj, fn)) != nil)
-					//r.append([ obj, v ]);
 					r.append(new _DtkObjMatch(obj, v));
 				obj = nextObj(obj, ObjClasses);
 			}
@@ -114,10 +116,10 @@ __refcountDebuggerEnumerator: object
 		if(_isLookupTable(v)) {
 			return(_searchTypeLookupTable(obj, fn, x));
 		}
-		if(isCollection(v)) {
+		if(_isCollection(v)) {
 			return(_searchTypeCollection(obj, fn, x));
 		}
-		if(isObject(v)) {
+		if(_isObject(v)) {
 			return(_searchTypeObject(obj, fn, x));
 		}
 
@@ -149,10 +151,10 @@ __refcountDebuggerEnumerator: object
 		if(_isLookupTable(v)) {
 			return(_checkLookupTable(v, fn));
 		}
-		if(isCollection(v)) {
+		if(_isCollection(v)) {
 			return(_checkCollection(v, fn));
 		}
-		if(isObject(v)) {
+		if(_isObject(v)) {
 			return(_checkObject(v, fn));
 		}
 		return(nil);
@@ -191,7 +193,7 @@ __refcountDebuggerEnumerator: object
 	forEachObject(fn?) {
 		local obj;
 
-		if(!isFunction(fn))
+		if(!_isFunction(fn))
 			return;
 		obj = firstObj();
 		while(obj) {
@@ -199,28 +201,6 @@ __refcountDebuggerEnumerator: object
 			obj = nextObj(obj);
 		}
 	}
-
-/*
-	_isFunction(obj) {
-		return((dataType(obj) != TypeNil)
-			&& (((dataType(obj) == TypeProp)
-			&& ((propType(obj) == TypeFuncPtr)
-                	|| (propType(obj) == TypeCode)))
-        		|| (dataTypeXlat(obj) == TypeFuncPtr)));
-
-	}
-
-	_isType(v, cls) {
-		return((v != nil) && (dataType(v) == TypeObject)
-			&& v.ofKind(cls));
-	}
-
-	_isIntrinsicType(v, cls) { return((v != nil) && v.ofKind(cls)); }
-
-	_isLookupTable(v) { return(_isType(v, LookupTable)); }
-	_isCollection(v) { return(_isIntrinsicType(v, Collection)); }
-	_isObject(v) { return((v != nil) && (dataType(v) == TypeObject)); }
-*/
 ;
 
 class RDCmd: DtkCommand
@@ -234,26 +214,34 @@ class RefcountDebugger: DtkDebugger
 		DtkCmdExit, RDRefcount, DtkCmdHelp, DtkCmdHelpArg
 	]
 
+	_logLine(idx, v0, v1) {
+		"\n<<sprintf('%_ -5s%_ -30s%_ -30s', idx, v0, v1)>>";
+	}
+
 	logResults(r) {
 		local i, j, l;
 
 		if(r.length == 0) {
 			"no matches";
-		} else {
-			for(i = 1; i <= r.length; i++) {
-				l = r[1].match;
-				"\ninstance <<toString(i)>>: ";
-				if(l.length < 1) {
-					"no references\n ";
-					continue;
-				}
+			return;
+		}
+		"<pre>";
+		_logLine('NUM', 'OBJECT', 'PROPERTY');
+		for(i = 1; i <= r.length; i++) {
+			l = r[1].match;
+			if(l.length < 1) {
+				_logLine(toString(i), 'none', 'none');
+				continue;
+			} else {
 				for(j = 1; j <= l.length; j++) {
-					"\n\t<<toString(l[j].obj)>>:
-						<<toString(l[j].prop)>>\n ";
+					_logLine(((j == 1) ? toString(i) : ''),
+						toString(l[j].obj),
+						toString(l[j].prop));
 				}
 			}
-			"\n<.p>\ntotal:  <<toString(r.length)>> instances\n ";
 		}
+		"</pre>";
+		"\n<.p>\ntotal:  <<toString(r.length)>> instances\n ";
 	}
 ;
 

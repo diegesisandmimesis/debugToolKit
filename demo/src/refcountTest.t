@@ -20,7 +20,6 @@
 #include <en_us.h>
 
 #include "debugToolKit.h"
-#include "dataTypes.h"
 
 #define pgClass gameMain.doorClass
 

@@ -8,7 +8,6 @@
 -lib system
 -lib adv3/adv3
 -lib ../debugToolKit
--lib dataTypes/dataTypes
 -source src/refcountTest.t
 -source reflect.t
 -source dynfunc.t
