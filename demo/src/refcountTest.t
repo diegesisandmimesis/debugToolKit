@@ -52,6 +52,9 @@ gameMain: GameMainDef
 
 	initialPlayerChar = me
 
+	inlineCommand(cmd) { "<b>&gt;<<toString(cmd).toUpper()>></b>"; }
+	printCommand(cmd) { "<.p>\n\t<<inlineCommand(cmd)>><.p> "; }
+
 	newGame() {
 		// Before we even start we swap the doors, using the
 		// logic implemented in the Foozle action class (defined
@@ -64,6 +67,21 @@ gameMain: GameMainDef
 		FoozleAction.swapDoors();
 
 		inherited();
+	}
+
+	showIntro() {
+		"This demo was put together as a testbed for dynamic door
+		creation and (hopefully) deletion.
+		<.p>The <<inlineCommand('dtk')>> command drops into the
+		interactive debugger, <<inlineCommand('refcount')>> drops
+		directly into the object reference debugger,
+		and <<inlineCommand('foo')>> can be used to display a
+		summary of the references for the DemoDoor class.
+		<.p>The <<inlineCommand('foozle')>> command shuffles the
+		door, replacing the current doors connecting startRoom and
+		northRoom with new instances.  This <b>should</b> free
+		the old door pair to be garbage collected, but this does
+		not appear to be true.  Hence this demo.<.p> ";
 	}
 ;
 
@@ -112,6 +130,7 @@ modify Room
 DefineSystemAction(Foozle)
 	execSystemAction() {
 		swapDoors();
+		"\nDoors shuffled.\n ";
 	}
 
 	swapDoors() {
