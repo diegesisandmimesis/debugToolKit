@@ -10,6 +10,8 @@
 	baseActionClass = name##Action \
 	_debugger = debuggerObj \
 
+#define dtkRunGC() __metaGC()
+
 #else // DTK
 
 #define DefineDtkAction(name, kw, debuggerObj...)

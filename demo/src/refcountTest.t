@@ -63,7 +63,7 @@ gameMain: GameMainDef
 		// to door instances aren't created until the first turn;
 		// you can invoke the command below as many times as you
 		// want and you'll never end up with more than two door
-		// instances (if you run t3RunGC() before checking).
+		// instances (if you run garbage collection before checking).
 		FoozleAction.swapDoors();
 
 		inherited();
@@ -143,11 +143,11 @@ DefineSystemAction(Foozle)
 		forEachInstance(Room, { x: x.clearDoor() });
 
 		// Clear all libGlobal caches.
-		libGlobal.connectionCache = nil;
-		libGlobal.canTouchCache = nil;
-		libGlobal.actorVisualAmbientCache = nil;
-		libGlobal.senseCache = nil;
-		libGlobal.invalSenseCache();
+		//libGlobal.connectionCache = nil;
+		//libGlobal.canTouchCache = nil;
+		//libGlobal.actorVisualAmbientCache = nil;
+		//libGlobal.senseCache = nil;
+		//libGlobal.invalSenseCache();
 	}
 
 	// Create and connect new doors.
@@ -177,6 +177,7 @@ DefineSystemAction(Foo)
 	execSystemAction() {
 		local r;
 
+		dtkRunGC();
 		r = __refcountDebuggerEnumerator.searchEach(DemoDoor);
 		RefcountDebugger.logResults(r);
 	}

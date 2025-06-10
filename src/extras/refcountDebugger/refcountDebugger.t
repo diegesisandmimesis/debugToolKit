@@ -99,6 +99,8 @@ class RDRefcount: RDCmd
 			return;
 		}
 
+		dtkRunGC();
+
 		r = __refcountDebuggerEnumerator.searchEach(cls);
 		_dtk.logResults(r);
 	}
