@@ -22,13 +22,14 @@ __refcountDebuggerEnumerator: object
 	]
 
 	searchEach(cls) {
-		local r;
+		local r, v;
 
 		r = new Vector();
 		forEachInstance(cls, function(x) {
-			r.append(new _DtkSearchResult(x,
-				search({ y: x.__equals(y) })));
+			v = search({ y: x.__equals(y) });
+			r.append(new _DtkSearchResult(x, v));
 		});
+
 		return(r);
 	}
 	search(fn) {
@@ -40,8 +41,9 @@ __refcountDebuggerEnumerator: object
 
 		obj = firstObj();
 		while(obj) {
-			if((v = _searchObject(obj, fn)) != nil)
+			if((v = _searchObject(obj, fn)) != nil) {
 				r.append(new _DtkObjMatch(obj, v));
+			}
 			obj = nextObj(obj);
 		}
 

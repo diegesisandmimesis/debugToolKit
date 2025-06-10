@@ -149,25 +149,8 @@ DefineSystemAction(Foozle)
 VerbRule(Foozle) 'foozle' : FoozleAction
 	verbPhrase = 'foozle/foozling';
 
-// Command to directly invoke the refcount debugger.
-DefineSystemAction(Refcount)
-	execSystemAction() {
-		refcountDebugger.debugger(nil, nil, 'command line');
-	}
-;
-VerbRule(Refcount) 'refcount' : RefcountAction
-	verbPhrase = 'refcount/refcounting';
-
-// Command to invoke the "general" debugger (in this case it only
-// contains the refcount debugger, but we're testing the modal
-// version of the code).
-DefineSystemAction(Dtk)
-	execSystemAction() {
-		demoDebugger.debugger(nil, nil, 'command line');
-	}
-;
-VerbRule(Dtk) 'dtk' : DtkAction
-	verbPhrase = 'dtk/dtking';
+DefineDtkAction(Refcount, 'refcount', refcountDebugger);
+DefineDtkAction(Dtk, 'dtk', demoDebugger);
 
 // Command that does what the refcount debugger does, only
 // directly in a command instead of in a debugger interface.
