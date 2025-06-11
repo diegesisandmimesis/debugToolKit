@@ -18,7 +18,11 @@ function __metaGC(fn?) {
 	fn = (fn ? fn : 'metaGCSave');
 
 	PreSaveObject.classExec();
-	try { saveGame(fn, gameMain.getSaveDesc('metaGC savefile')); }
+	try {
+		_outputCapture({ :
+			saveGame(fn, gameMain.getSaveDesc('metaGC savefile'))
+		});
+	}
 	catch(Exception e) { return(nil); }
 
 	try { restoreGame(fn); }
