@@ -251,6 +251,8 @@ class DtkDebugger: PreinitObject
 		outputManager.setOutputStream(stream);
 		outputManager.curTranscript = transcript;
 		gTranscript = transcript;
+		if(gTranscript == nil)
+			gTranscript = new CommandTranscript();
 
 		transcript = nil;
 	}
