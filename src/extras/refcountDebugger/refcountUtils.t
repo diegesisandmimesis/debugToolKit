@@ -13,8 +13,6 @@
 
 
 function __metaGC(fn?) {
-	local s;
-
 	t3RunGC();
 
 	fn = (fn ? fn : 'metaGCSave');
@@ -22,6 +20,7 @@ function __metaGC(fn?) {
 	PreSaveObject.classExec();
 	try { saveGame(fn, gameMain.getSaveDesc('metaGC savefile')); }
 	catch(Exception e) { return(nil); }
+
 	try { restoreGame(fn); }
 	catch(Exception e) { return(nil); }
 	PostRestoreObject.restoreCode = 2;
