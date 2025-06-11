@@ -126,6 +126,8 @@ class DtkDebugger: PreinitObject
 	// Generic output method
 	output(msg, svc?, ind?)
 		{ aioSay('\n<<formatOutput(msg, svc, ind)>>\n '); }
+	preOutput(msg, svc?, ind?)
+		{ aioSay('<<formatOutput(msg, svc, ind)>>\n'); }
 
 	addCommand(obj) {
 		if((obj == nil) || !obj.ofKind(DtkCommand))

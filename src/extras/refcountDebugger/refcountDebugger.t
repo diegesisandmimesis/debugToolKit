@@ -38,13 +38,14 @@ class _DtkObjMatch: object
 
 class RDCmd: DtkCommand
 	output(msg, svc?, ind?) { _dtk.output(msg, svc, ind); }
+	preOutput(msg, svc?, ind?) { _dtk.preOutput(msg, svc, ind); }
 ;
 
 class RefcountDebugger: DtkDebugger
 	name = 'refcount'
 
 	defaultCommands = static [
-		DtkCmdExit, RDRefcount, DtkCmdHelp, DtkCmdHelpArg
+		DtkCmdExit, RDRef, RDCount, DtkCmdHelp, DtkCmdHelpArg
 	]
 
 	_logLine(idx, v0, v1) {
@@ -79,11 +80,11 @@ class RefcountDebugger: DtkDebugger
 
 class ModalRefcountDebugger: RefcountDebugger, DtkModalDebugger
 	defaultCommands = static [
-		RDRefcount, DtkCmdBack, DtkCmdHelp, DtkCmdHelpArg
+		RDCount, RDRef, DtkCmdBack, DtkCmdHelp, DtkCmdHelpArg
 	]
 ;
 
-class RDRefcount: RDCmd 
+class RDRef: RDCmd
 	id = 'ref'
 	help = 'display active references to class'
 	longHelp = "Use <q>ref @CLASS</q> to display all of the objects and
@@ -103,6 +104,38 @@ class RDRefcount: RDCmd
 
 		r = __refcountDebuggerEnumerator.searchEach(cls);
 		_dtk.logResults(r);
+	}
+;
+
+class RDCount: RDCmd
+	id = 'count'
+	help = 'display class instance counts'
+	longHelp = "The <q>count</q> command displays the number of instances
+		of each class defined in RDCount.classes.  By default
+		the class list is empty, so add a <q>modify RDCount classes = [
+		... ];</q> somewhere in your project to define your own list. "
+	classes = static [ ]
+	cmd() {
+		if(classes.length == 0) {
+			output('no class list');
+			return;
+		}
+
+		dtkRunGC();
+
+		preOutput('<pre>');
+		preOutput(sprintf('%_ -30s %_ 4s', 'CLASS', 'NUM'));
+		classes.forEach({ x: _countInstances(x) });
+		preOutput('</pre>');
+	}
+
+	_countInstances(cls) {
+		local n;
+
+		n = 0;
+		forEachInstance(cls, { x: n += 1 });
+		preOutput(sprintf('%_ -30s %_ 4s',
+			toString(cls), toString(n)));
 	}
 ;
 
