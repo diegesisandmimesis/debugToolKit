@@ -38,6 +38,8 @@ class DtkDebugger: PreinitObject
 	transcript = nil		// saved "real" transcript
 	stream = nil			// saved "real" output stream
 
+	_leaveTranscript = nil
+
 	// Default commands to add to every debugger.  We always
 	// add the standard help and exit commands.
 	defaultCommands = static [ DtkCmdExit, DtkCmdHelp, DtkCmdHelpArg ]
@@ -250,6 +252,10 @@ class DtkDebugger: PreinitObject
 
 	// Undo the stuff we did in setDebugOutput() above
 	unsetDebugOutput() {
+		if(_leaveTranscript) {
+			transcript = nil;
+			return;
+		}
 		outputManager.setOutputStream(stream);
 		outputManager.curTranscript = transcript;
 		gTranscript = transcript;

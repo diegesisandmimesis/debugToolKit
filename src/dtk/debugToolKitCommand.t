@@ -47,9 +47,9 @@ class DtkCmdExit: DtkCommand
 ;
 
 class DtkCmdBack: DtkCommand
-	id = 'back'
+	id = 'exit'
 	help = 'exit this mode'
-	longHelp = "Use <q>back</q> to exit this mode and return to the
+	longHelp = "Use <q>exit</q> to exit this mode and return to the
 		main debugger. "
 	cmd() { return(true); }
 ;

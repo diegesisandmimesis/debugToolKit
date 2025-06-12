@@ -104,6 +104,8 @@ class RDRef: RDCmd
 
 		r = __refcountDebuggerEnumerator.searchEach(cls);
 		_dtk.logResults(r);
+
+		_dtk._leaveTranscript = true;
 	}
 ;
 
@@ -127,6 +129,8 @@ class RDCount: RDCmd
 		preOutput(sprintf('%_ -30s %_ 4s', 'CLASS', 'NUM'));
 		classes.forEach({ x: _countInstances(x) });
 		preOutput('</pre>');
+
+		_dtk._leaveTranscript = true;
 	}
 
 	_countInstances(cls) {
